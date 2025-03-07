@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -34,12 +35,14 @@ const validationSchema = Yup.object().shape({
 });
 
 const HealthScreen = () => {
-  const { healthRecords, addHealthRecord } = useContext(DataContext);
+  const { healthRecords, addHealthRecord, updateHealthRecord } = useContext(DataContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('veterinario'); // Filtro padrão: veterinário
+  const [filterType, setFilterType] = useState('veterinario');
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [isFilterApplied, setIsFilterApplied] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [recordToEdit, setRecordToEdit] = useState(null);
 
   // Função para aplicar o filtro
   const applyFilter = () => {
@@ -72,6 +75,25 @@ const HealthScreen = () => {
       resetForm();
     } catch (error) {
       Alert.alert('Erro', 'Ocorreu um erro ao salvar o registro de saúde. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditRecord = (record) => {
+    setRecordToEdit(record);
+    setIsEditModalVisible(true);
+  };
+
+  const handleUpdateRecord = async (values, { resetForm }) => {
+    setIsSubmitting(true);
+    try {
+      await updateHealthRecord(values);
+      Alert.alert('Sucesso', 'Registro de saúde atualizado com sucesso!');
+      setIsEditModalVisible(false);
+      resetForm();
+    } catch (error) {
+      Alert.alert('Erro', 'Ocorreu um erro ao atualizar o registro de saúde. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -207,11 +229,96 @@ const HealthScreen = () => {
                   <Text style={styles.itemDetail}>Apetite: {record.apetite}</Text>
                   <Text style={styles.itemDetail}>Temperatura: {record.temperatura}°C</Text>
                   <Text style={styles.itemDetail}>Data: {record.dataVerificacao}</Text>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditRecord(record)}
+                  >
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
                 </View>
               ))
             )}
           </View>
         )}
+
+        {/* Modal de Edição */}
+        <Modal
+          visible={isEditModalVisible}
+          animationType="slide"
+          onRequestClose={() => setIsEditModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>Editar Registro de Saúde</Text>
+            <Formik
+              initialValues={{
+                veterinario: recordToEdit?.veterinario || '',
+                status: recordToEdit?.status || '',
+                apetite: recordToEdit?.apetite || '',
+                temperatura: recordToEdit?.temperatura || '',
+                dataVerificacao: recordToEdit?.dataVerificacao || '',
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleUpdateRecord}
+            >
+              {({ handleChange, handleBlur, handleSubmit, values, errors, touched, isValid }) => (
+                <View>
+                  <Input
+                    placeholder="Veterinário"
+                    onChangeText={handleChange('veterinario')}
+                    onBlur={handleBlur('veterinario')}
+                    value={values.veterinario}
+                    error={touched.veterinario && errors.veterinario}
+                    icon="medical-services"
+                  />
+                  <Input
+                    placeholder="Status"
+                    onChangeText={handleChange('status')}
+                    onBlur={handleBlur('status')}
+                    value={values.status}
+                    error={touched.status && errors.status}
+                    icon="assignment"
+                  />
+                  <Input
+                    placeholder="Apetite"
+                    onChangeText={handleChange('apetite')}
+                    onBlur={handleBlur('apetite')}
+                    value={values.apetite}
+                    error={touched.apetite && errors.apetite}
+                    icon="restaurant"
+                  />
+                  <Input
+                    placeholder="Temperatura"
+                    onChangeText={handleChange('temperatura')}
+                    onBlur={handleBlur('temperatura')}
+                    value={values.temperatura}
+                    keyboardType="numeric"
+                    error={touched.temperatura && errors.temperatura}
+                    icon="thermostat"
+                  />
+                  <Input
+                    placeholder="Data de Verificação (DD/MM/AAAA)"
+                    onChangeText={handleChange('dataVerificacao')}
+                    onBlur={handleBlur('dataVerificacao')}
+                    value={values.dataVerificacao}
+                    error={touched.dataVerificacao && errors.dataVerificacao}
+                    icon="event"
+                  />
+                  <Button
+                    title={isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+                    onPress={handleSubmit}
+                    style={{ marginTop: 20 }}
+                    disabled={!isValid || isSubmitting}
+                  />
+                  <Button
+                    title="Cancelar"
+                    onPress={() => setIsEditModalVisible(false)}
+                    style={{ marginTop: 10, backgroundColor: '#D32F2F' }}
+                  />
+                </View>
+              )}
+            </Formik>
+          </View>
+        </Modal>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -302,6 +409,22 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 10,
+  },
+  editButton: {
+    backgroundColor: '#FFA000',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f4f4f4',
   },
 });
 

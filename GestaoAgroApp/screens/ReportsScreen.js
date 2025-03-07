@@ -10,7 +10,6 @@ import {
   Alert,
 } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
-import ReportCard from '../components/ReportCard';
 import { styles as appStyles, colors } from '../utils/theme';
 import { DataContext } from '../context/DataContext';
 
@@ -20,33 +19,30 @@ const ReportsScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('animal');
   const [filteredReports, setFilteredReports] = useState([]);
-  const [selectedDataPoint, setSelectedDataPoint] = useState(null); // Estado para o ponto selecionado no gráfico
+  const [selectedDataPoint, setSelectedDataPoint] = useState(null);
 
-  // Dados para os cards de relatório
   const reports = [
     { id: '1', title: 'Total de Animais', value: animals.length.toString(), type: 'animal' },
     { id: '2', title: 'Registros de Saúde', value: healthRecords.length.toString(), type: 'health' },
     { id: '3', title: 'Registros de Produção', value: productionRecords.length.toString(), type: 'production' },
   ];
 
-  // Dados para o gráfico
   const chartData = {
     labels: ['Animais', 'Saúde', 'Produção'],
     datasets: [
       {
         data: [animals.length, healthRecords.length, productionRecords.length],
-        color: (opacity = 1) => `rgba(255, 99, 132, ${opacity})`, // Cor das barras/linhas
-        strokeWidth: 2, // Espessura da linha (para LineChart)
+        color: (opacity = 1) => `rgba(255, 99, 132, ${opacity})`,
+        strokeWidth: 2,
       },
     ],
   };
 
   const screenWidth = Dimensions.get('window').width;
 
-  // Função para aplicar o filtro
   const applyFilter = () => {
     if (searchTerm === '') {
-      setFilteredReports(reports); // Se o termo estiver vazio, mostra todos os relatórios
+      setFilteredReports(reports);
     } else {
       const filtered = reports.filter((report) => {
         return report.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -55,7 +51,6 @@ const ReportsScreen = () => {
     }
   };
 
-  // Função para lidar com o toque no gráfico
   const handleDataPointClick = (data) => {
     setSelectedDataPoint(data);
     Alert.alert(
@@ -65,7 +60,6 @@ const ReportsScreen = () => {
     );
   };
 
-  // Função para renderizar o gráfico selecionado
   const renderChart = () => {
     const chartConfig = {
       backgroundColor: colors.primary,
@@ -102,8 +96,8 @@ const ReportsScreen = () => {
             shadowRadius: 2,
             elevation: 5,
           }}
-          fromZero // Começa o eixo Y do zero
-          onDataPointClick={handleDataPointClick} // Adiciona interatividade ao toque
+          fromZero
+          onDataPointClick={handleDataPointClick}
         />
       );
     } else {
@@ -114,7 +108,7 @@ const ReportsScreen = () => {
           height={220}
           yAxisLabel=""
           chartConfig={chartConfig}
-          bezier // Suaviza a linha
+          bezier
           style={{
             marginVertical: 20,
             borderRadius: 10,
@@ -125,17 +119,48 @@ const ReportsScreen = () => {
             shadowRadius: 2,
             elevation: 5,
           }}
-          onDataPointClick={handleDataPointClick} // Adiciona interatividade ao toque
+          onDataPointClick={handleDataPointClick}
         />
       );
     }
   };
 
+  const ReportCard = ({ title, value }) => {
+    return (
+      <View style={cardStyles.card}>
+        <Text style={cardStyles.cardTitle}>{title}</Text>
+        <Text style={cardStyles.cardValue}>{value}</Text>
+      </View>
+    );
+  };
+
+  const cardStyles = StyleSheet.create({
+    card: {
+      backgroundColor: '#f9f9f9',
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#333',
+    },
+    cardValue: {
+      fontSize: 16,
+      color: '#666',
+    },
+  });
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Relatórios</Text>
 
-      {/* Filtro de Relatórios */}
       <View style={styles.filterContainer}>
         <TextInput
           style={styles.searchInput}
@@ -151,7 +176,6 @@ const ReportsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Opções de Filtro por Tipo */}
       <View style={styles.filterOptions}>
         <TouchableOpacity
           style={[
@@ -182,7 +206,6 @@ const ReportsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Lista de Relatórios Filtrados */}
       <FlatList
         data={filteredReports.length > 0 ? filteredReports : reports.filter((report) => report.type === filterType)}
         keyExtractor={(item) => item.id}
@@ -190,7 +213,6 @@ const ReportsScreen = () => {
         contentContainerStyle={{ paddingBottom: 20 }}
       />
 
-      {/* Botões para Alternar entre Gráficos */}
       <View style={styles.chartToggleContainer}>
         <TouchableOpacity
           style={[
@@ -212,10 +234,8 @@ const ReportsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Renderiza o Gráfico Selecionado */}
       {renderChart()}
 
-      {/* Exibe detalhes do ponto selecionado */}
       {selectedDataPoint && (
         <View style={styles.dataPointContainer}>
           <Text style={styles.dataPointText}>

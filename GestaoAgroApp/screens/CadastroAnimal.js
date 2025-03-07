@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -33,14 +34,15 @@ const validationSchema = Yup.object().shape({
 });
 
 const CadastroAnimal = () => {
-  const { animals, addAnimal } = useContext(DataContext);
+  const { animals, addAnimal, updateAnimal } = useContext(DataContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('codigoBrinco'); // Filtro padrão: código do brinco
+  const [filterType, setFilterType] = useState('codigoBrinco');
   const [filteredAnimals, setFilteredAnimals] = useState([]);
   const [isFilterApplied, setIsFilterApplied] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [animalToEdit, setAnimalToEdit] = useState(null);
 
-  // Função para aplicar o filtro
   const applyFilter = () => {
     if (searchTerm === '') {
       setFilteredAnimals([]);
@@ -71,6 +73,25 @@ const CadastroAnimal = () => {
       resetForm();
     } catch (error) {
       Alert.alert('Erro', 'Ocorreu um erro ao cadastrar o animal. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditAnimal = (animal) => {
+    setAnimalToEdit(animal);
+    setIsEditModalVisible(true);
+  };
+
+  const handleUpdateAnimal = async (values, { resetForm }) => {
+    setIsSubmitting(true);
+    try {
+      await updateAnimal(values);
+      Alert.alert('Sucesso', 'Animal atualizado com sucesso!');
+      setIsEditModalVisible(false);
+      resetForm();
+    } catch (error) {
+      Alert.alert('Erro', 'Ocorreu um erro ao atualizar o animal. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -228,11 +249,118 @@ const CadastroAnimal = () => {
                   <Text style={styles.itemSexo}>Sexo: {animal.sexo}</Text>
                   <Text style={styles.itemPeso}>Peso: {animal.peso} kg</Text>
                   <Text style={styles.itemIdade}>Idade: {animal.idade} anos</Text>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditAnimal(animal)}
+                  >
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
                 </View>
               ))
             )}
           </View>
         )}
+
+        {/* Modal de Edição */}
+        <Modal
+          visible={isEditModalVisible}
+          animationType="slide"
+          onRequestClose={() => setIsEditModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>Editar Animal</Text>
+            <Formik
+              initialValues={{
+                codigoBrinco: animalToEdit?.codigoBrinco || '',
+                raca: animalToEdit?.raca || '',
+                peso: animalToEdit?.peso || '',
+                sexo: animalToEdit?.sexo || '',
+                idade: animalToEdit?.idade || '',
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleUpdateAnimal}
+            >
+              {({ handleChange, handleBlur, handleSubmit, values, errors, touched, isValid, setFieldValue }) => (
+                <View>
+                  <Input
+                    placeholder="Código do Brinco"
+                    onChangeText={handleChange('codigoBrinco')}
+                    onBlur={handleBlur('codigoBrinco')}
+                    value={values.codigoBrinco}
+                    error={touched.codigoBrinco && errors.codigoBrinco}
+                    icon="pets"
+                  />
+                  <Input
+                    placeholder="Raça do Animal"
+                    onChangeText={handleChange('raca')}
+                    onBlur={handleBlur('raca')}
+                    value={values.raca}
+                    error={touched.raca && errors.raca}
+                    icon="pets"
+                  />
+                  <Input
+                    placeholder="Peso do Animal"
+                    onChangeText={handleChange('peso')}
+                    onBlur={handleBlur('peso')}
+                    value={values.peso}
+                    keyboardType="numeric"
+                    error={touched.peso && errors.peso}
+                    icon="fitness-center"
+                  />
+                  <Input
+                    placeholder="Idade do Animal"
+                    onChangeText={handleChange('idade')}
+                    onBlur={handleBlur('idade')}
+                    value={values.idade}
+                    keyboardType="numeric"
+                    error={touched.idade && errors.idade}
+                    icon="calendar-today"
+                  />
+
+                  {/* Campo de Sexo com Radio Buttons */}
+                  <View style={styles.sexoContainer}>
+                    <Text style={styles.sexoLabel}>Sexo do Animal:</Text>
+                    <View style={styles.radioGroup}>
+                      <TouchableOpacity
+                        style={[
+                          styles.radioButton,
+                          values.sexo === 'Macho' && styles.radioButtonActive,
+                        ]}
+                        onPress={() => setFieldValue('sexo', 'Macho')}
+                      >
+                        <Text style={styles.radioButtonText}>Macho</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.radioButton,
+                          values.sexo === 'Fêmea' && styles.radioButtonActive,
+                        ]}
+                        onPress={() => setFieldValue('sexo', 'Fêmea')}
+                      >
+                        <Text style={styles.radioButtonText}>Fêmea</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {touched.sexo && errors.sexo && (
+                      <Text style={styles.error}>{errors.sexo}</Text>
+                    )}
+                  </View>
+
+                  <Button
+                    title={isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+                    onPress={handleSubmit}
+                    style={{ marginTop: 20 }}
+                    disabled={!isValid || isSubmitting}
+                  />
+                  <Button
+                    title="Cancelar"
+                    onPress={() => setIsEditModalVisible(false)}
+                    style={{ marginTop: 10, backgroundColor: '#D32F2F' }}
+                  />
+                </View>
+              )}
+            </Formik>
+          </View>
+        </Modal>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -367,6 +495,22 @@ const styles = StyleSheet.create({
     color: '#D32F2F',
     fontSize: 14,
     marginTop: 5,
+  },
+  editButton: {
+    backgroundColor: '#FFA000',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f4f4f4',
   },
 });
 

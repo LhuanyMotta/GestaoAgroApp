@@ -12,7 +12,7 @@ const Input = ({
   keyboardType,
   icon,
   isValid,
-  secureTextEntry, // Adicionando a propriedade secureTextEntry
+  secureTextEntry,
 }) => {
   const scaleValue = new Animated.Value(1);
 
@@ -55,7 +55,7 @@ const Input = ({
           onFocus={handleFocus}
           value={value}
           keyboardType={keyboardType}
-          secureTextEntry={secureTextEntry} // Passando a propriedade secureTextEntry
+          secureTextEntry={secureTextEntry}
           placeholderTextColor="#888"
         />
       </View>

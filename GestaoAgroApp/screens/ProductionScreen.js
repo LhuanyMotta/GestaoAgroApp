@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Switch,
+  Modal,
 } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -119,6 +120,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  editButton: {
+    backgroundColor: '#FFA000',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f4f4f4',
+  },
 });
 
 const validationSchema = Yup.object().shape({
@@ -138,16 +155,18 @@ const validationSchema = Yup.object().shape({
 });
 
 const ProductionScreen = () => {
-  const { productionRecords, addProductionRecord } = useContext(DataContext);
+  const { productionRecords, addProductionRecord, updateProductionRecord } = useContext(DataContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('tipoAnimal');
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [isFilterApplied, setIsFilterApplied] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [recordToEdit, setRecordToEdit] = useState(null);
 
   const applyFilter = () => {
     if (searchTerm === '') {
-      setFilteredRecords([]);
+      setFilteredRecords([]); // Limpa a lista filtrada se o termo de busca estiver vazio
       setIsFilterApplied(false);
     } else {
       const filtered = productionRecords.filter((record) => {
@@ -160,7 +179,7 @@ const ProductionScreen = () => {
             return false;
         }
       });
-      setFilteredRecords(filtered);
+      setFilteredRecords(filtered); // Atualiza a lista filtrada
       setIsFilterApplied(true);
     }
   };
@@ -173,6 +192,28 @@ const ProductionScreen = () => {
       resetForm();
     } catch (error) {
       Alert.alert('Erro', 'Ocorreu um erro ao salvar o registro de produção. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditRecord = (record) => {
+    setRecordToEdit(record);
+    setIsEditModalVisible(true);
+  };
+
+  const handleUpdateRecord = async (values, { resetForm }) => {
+    setIsSubmitting(true);
+    try {
+      await updateProductionRecord(values);
+      Alert.alert('Sucesso', 'Registro de produção atualizado com sucesso!');
+      setIsEditModalVisible(false);
+      resetForm();
+
+      // Reaplica o filtro após a edição
+      applyFilter();
+    } catch (error) {
+      Alert.alert('Erro', 'Ocorreu um erro ao atualizar o registro de produção. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -305,11 +346,100 @@ const ProductionScreen = () => {
                   )}
                   <Text style={styles.itemDetail}>Ganho de Peso: {record.ganhoPeso} kg</Text>
                   <Text style={styles.itemDetail}>Data de Produção: {record.dataProducao}</Text>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditRecord(record)}
+                  >
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
                 </View>
               ))
             )}
           </View>
         )}
+
+        {/* Modal de Edição */}
+        <Modal
+          visible={isEditModalVisible}
+          animationType="slide"
+          onRequestClose={() => setIsEditModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>Editar Registro de Produção</Text>
+            <Formik
+              initialValues={{
+                leite: recordToEdit?.leite || '',
+                ganhoPeso: recordToEdit?.ganhoPeso || '',
+                dataProducao: recordToEdit?.dataProducao || '',
+                tipoAnimal: recordToEdit?.tipoAnimal || '',
+                producaoLeite: recordToEdit?.producaoLeite || false,
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleUpdateRecord}
+            >
+              {({ handleChange, handleBlur, handleSubmit, values, errors, touched, isValid, setFieldValue }) => (
+                <View>
+                  <Input
+                    placeholder="Produção de Leite (litros)"
+                    onChangeText={handleChange('leite')}
+                    onBlur={handleBlur('leite')}
+                    value={values.leite}
+                    keyboardType="numeric"
+                    error={touched.leite && errors.leite}
+                    icon="local-drink"
+                  />
+                  <Input
+                    placeholder="Ganho de Peso (kg)"
+                    onChangeText={handleChange('ganhoPeso')}
+                    onBlur={handleBlur('ganhoPeso')}
+                    value={values.ganhoPeso}
+                    keyboardType="numeric"
+                    error={touched.ganhoPeso && errors.ganhoPeso}
+                    icon="fitness-center"
+                  />
+                  <Input
+                    placeholder="Data de Produção (DD/MM/AAAA)"
+                    onChangeText={handleChange('dataProducao')}
+                    onBlur={handleBlur('dataProducao')}
+                    value={values.dataProducao}
+                    error={touched.dataProducao && errors.dataProducao}
+                    icon="event"
+                  />
+                  <Input
+                    placeholder="Tipo de Animal (ex: Bovino, Caprino)"
+                    onChangeText={handleChange('tipoAnimal')}
+                    onBlur={handleBlur('tipoAnimal')}
+                    value={values.tipoAnimal}
+                    error={touched.tipoAnimal && errors.tipoAnimal}
+                    icon="pets"
+                  />
+
+                  <View style={styles.switchContainer}>
+                    <Switch
+                      value={values.producaoLeite}
+                      onValueChange={(value) => setFieldValue('producaoLeite', value)}
+                      trackColor={{ false: '#767577', true: '#81b0ff' }}
+                      thumbColor={values.producaoLeite ? '#2E7D32' : '#f4f3f4'}
+                    />
+                    <Text style={styles.switchLabel}>Animal de produção de leite</Text>
+                  </View>
+
+                  <Button
+                    title={isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+                    onPress={handleSubmit}
+                    style={{ marginTop: 20 }}
+                    disabled={!isValid || isSubmitting}
+                  />
+                  <Button
+                    title="Cancelar"
+                    onPress={() => setIsEditModalVisible(false)}
+                    style={{ marginTop: 10, backgroundColor: '#D32F2F' }}
+                  />
+                </View>
+              )}
+            </Formik>
+          </View>
+        </Modal>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -38,14 +38,38 @@ export const DataProvider = ({ children }) => {
     await saveData('animals', newAnimals);
   };
 
+  const updateAnimal = async (updatedAnimal) => {
+    const newAnimals = animals.map((animal) =>
+      animal.codigoBrinco === updatedAnimal.codigoBrinco ? updatedAnimal : animal
+    );
+    setAnimals(newAnimals);
+    await saveData('animals', newAnimals);
+  };
+
   const addHealthRecord = async (record) => {
     const newRecords = [...healthRecords, record];
     setHealthRecords(newRecords);
     await saveData('healthRecords', newRecords);
   };
 
+  const updateHealthRecord = async (updatedRecord) => {
+    const newRecords = healthRecords.map((record) =>
+      record.id === updatedRecord.id ? updatedRecord : record
+    );
+    setHealthRecords(newRecords);
+    await saveData('healthRecords', newRecords);
+  };
+
   const addProductionRecord = async (record) => {
     const newRecords = [...productionRecords, record];
+    setProductionRecords(newRecords);
+    await saveData('productionRecords', newRecords);
+  };
+
+  const updateProductionRecord = async (updatedRecord) => {
+    const newRecords = productionRecords.map((record) =>
+      record.id === updatedRecord.id ? updatedRecord : record
+    );
     setProductionRecords(newRecords);
     await saveData('productionRecords', newRecords);
   };
@@ -73,8 +97,11 @@ export const DataProvider = ({ children }) => {
         users,
         loading,
         addAnimal,
+        updateAnimal,
         addHealthRecord,
+        updateHealthRecord,
         addProductionRecord,
+        updateProductionRecord,
         addUser,
         clearData,
       }}
