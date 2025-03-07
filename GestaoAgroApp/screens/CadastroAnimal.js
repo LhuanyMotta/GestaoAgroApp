@@ -9,49 +9,23 @@ import { styles as globalStyles, colors } from '../utils/theme';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const validationSchema = Yup.object().shape({
-  nome: Yup.string()
-    .required('Nome é obrigatório')
-    .min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  codigoBrinco: Yup.string()
+    .required('Código do Brinco é obrigatório')
+    .min(3, 'Código do Brinco deve ter pelo menos 3 caracteres'),
   raca: Yup.string().required('Raça é obrigatória'),
+  peso: Yup.number()
+    .required('Peso é obrigatório')
+    .positive('Peso deve ser um número positivo'),
   sexo: Yup.string().required('Sexo é obrigatório'),
-  dataNascimento: Yup.string()
-    .required('Data de nascimento é obrigatória')
-    .matches(
-      /^\d{2}\/\d{2}\/\d{4}$/,
-      'Data deve estar no formato DD/MM/AAAA'
-    ),
+  idade: Yup.number()
+    .required('Idade é obrigatória')
+    .positive('Idade deve ser um número positivo')
+    .integer('Idade deve ser um número inteiro'),
 });
 
-const Cadastro = () => {
+const CadastroAnimal = () => {
   const { animals, addAnimal } = useContext(DataContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('nome');
-  const [filteredAnimals, setFilteredAnimals] = useState([]);
-  const [isFilterApplied, setIsFilterApplied] = useState(false);
-
-  // Função para aplicar o filtro
-  const applyFilter = () => {
-    if (searchTerm === '') {
-      setFilteredAnimals([]);
-      setIsFilterApplied(false);
-    } else {
-      const filtered = animals.filter((animal) => {
-        switch (filterType) {
-          case 'nome':
-            return animal.nome.toLowerCase().includes(searchTerm.toLowerCase());
-          case 'raca':
-            return animal.raca.toLowerCase().includes(searchTerm.toLowerCase());
-          case 'sexo':
-            return animal.sexo.toLowerCase().includes(searchTerm.toLowerCase());
-          default:
-            return false;
-        }
-      });
-      setFilteredAnimals(filtered);
-      setIsFilterApplied(true);
-    }
-  };
 
   const handleSubmit = async (values, { resetForm }) => {
     setIsSubmitting(true);
@@ -72,22 +46,21 @@ const Cadastro = () => {
       style={{ flex: 1 }}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Formulário de Cadastro de Animal */}
         <View style={styles.card}>
           <Text style={styles.title}>Cadastrar Novo Animal</Text>
           <Formik
-            initialValues={{ nome: '', raca: '', sexo: '', dataNascimento: '' }}
+            initialValues={{ codigoBrinco: '', raca: '', peso: '', sexo: '', idade: '' }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
             {({ handleChange, handleBlur, handleSubmit, values, errors, touched, isValid, setFieldValue }) => (
               <View>
                 <Input
-                  placeholder="Nome do Animal"
-                  onChangeText={handleChange('nome')}
-                  onBlur={handleBlur('nome')}
-                  value={values.nome}
-                  error={touched.nome && errors.nome}
+                  placeholder="Código do Brinco"
+                  onChangeText={handleChange('codigoBrinco')}
+                  onBlur={handleBlur('codigoBrinco')}
+                  value={values.codigoBrinco}
+                  error={touched.codigoBrinco && errors.codigoBrinco}
                   icon="pets"
                 />
                 <Input
@@ -99,15 +72,24 @@ const Cadastro = () => {
                   icon="pets"
                 />
                 <Input
-                  placeholder="Data de Nascimento (DD/MM/AAAA)"
-                  onChangeText={handleChange('dataNascimento')}
-                  onBlur={handleBlur('dataNascimento')}
-                  value={values.dataNascimento}
-                  error={touched.dataNascimento && errors.dataNascimento}
-                  icon="event"
+                  placeholder="Peso do Animal"
+                  onChangeText={handleChange('peso')}
+                  onBlur={handleBlur('peso')}
+                  value={values.peso}
+                  keyboardType="numeric"
+                  error={touched.peso && errors.peso}
+                  icon="fitness-center"
+                />
+                <Input
+                  placeholder="Idade do Animal"
+                  onChangeText={handleChange('idade')}
+                  onBlur={handleBlur('idade')}
+                  value={values.idade}
+                  keyboardType="numeric"
+                  error={touched.idade && errors.idade}
+                  icon="calendar-today"
                 />
 
-                {/* Campo de Sexo com Radio Buttons */}
                 <View style={styles.sexoContainer}>
                   <Text style={styles.sexoLabel}>Sexo do Animal:</Text>
                   <View style={styles.radioGroup}>
@@ -145,77 +127,6 @@ const Cadastro = () => {
             )}
           </Formik>
         </View>
-
-        {/* Filtro de Animais */}
-        <View style={styles.card}>
-          <Text style={styles.title}>Filtrar Animais</Text>
-          <View style={styles.filterContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder={`Digite o ${filterType === 'nome' ? 'nome' : filterType === 'raca' ? 'raça' : 'sexo'} do animal`}
-              value={searchTerm}
-              onChangeText={(text) => setSearchTerm(text)}
-            />
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={applyFilter}
-            >
-              <Icon name="search" size={24} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.filterOptions}>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                filterType === 'nome' && styles.filterOptionActive,
-              ]}
-              onPress={() => setFilterType('nome')}
-            >
-              <Text style={styles.filterOptionText}>Nome</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                filterType === 'raca' && styles.filterOptionActive,
-              ]}
-              onPress={() => setFilterType('raca')}
-            >
-              <Text style={styles.filterOptionText}>Raça</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                filterType === 'sexo' && styles.filterOptionActive,
-              ]}
-              onPress={() => setFilterType('sexo')}
-            >
-              <Text style={styles.filterOptionText}>Sexo</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Lista de Animais Filtrados */}
-        {isFilterApplied && (
-          <View style={styles.card}>
-            <Text style={styles.title}>Animais Cadastrados</Text>
-            <Text style={styles.description}>
-              Aqui você pode visualizar os animais cadastrados no sistema.
-            </Text>
-
-            {filteredAnimals.length === 0 ? (
-              <Text style={styles.emptyMessage}>Nenhum animal encontrado.</Text>
-            ) : (
-              filteredAnimals.map((animal, index) => (
-                <View key={index} style={styles.animalItem}>
-                  <Text style={styles.itemTitle}>{animal.nome}</Text>
-                  <Text style={styles.itemRaca}>Raça: {animal.raca}</Text>
-                  <Text style={styles.itemSexo}>Sexo: {animal.sexo}</Text>
-                  <Text style={styles.itemDate}>Nascimento: {animal.dataNascimento}</Text>
-                </View>
-              ))
-            )}
-          </View>
-        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -243,82 +154,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: colors.primary,
-  },
-  description: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#333',
-  },
-  animalItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 10,
-  },
-  itemTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  itemRaca: {
-    fontSize: 14,
-    color: '#666',
-  },
-  itemSexo: {
-    fontSize: 14,
-    color: '#666',
-  },
-  itemDate: {
-    fontSize: 14,
-    color: '#666',
-  },
-  emptyMessage: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 10,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 50,
-    borderColor: colors.secondary,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    backgroundColor: 'white',
-    marginRight: 10,
-  },
-  filterButton: {
-    backgroundColor: colors.primary,
-    padding: 10,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  filterOption: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: colors.lightGray,
-    marginHorizontal: 5,
-    alignItems: 'center',
-  },
-  filterOptionActive: {
-    backgroundColor: colors.primary,
-  },
-  filterOptionText: {
-    fontSize: 16,
-    color: colors.darkGray,
   },
   sexoContainer: {
     marginBottom: 20,
@@ -354,4 +189,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Cadastro;
+export default CadastroAnimal;

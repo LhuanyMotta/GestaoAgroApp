@@ -3,7 +3,17 @@ import { TextInput, View, Text, StyleSheet, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { styles, colors } from './theme';
 
-const Input = ({ placeholder, onChangeText, onBlur, value, error, keyboardType, icon, isValid }) => {
+const Input = ({
+  placeholder,
+  onChangeText,
+  onBlur,
+  value,
+  error,
+  keyboardType,
+  icon,
+  isValid,
+  secureTextEntry, // Adicionando a propriedade secureTextEntry
+}) => {
   const scaleValue = new Animated.Value(1);
 
   const handleFocus = () => {
@@ -45,6 +55,7 @@ const Input = ({ placeholder, onChangeText, onBlur, value, error, keyboardType, 
           onFocus={handleFocus}
           value={value}
           keyboardType={keyboardType}
+          secureTextEntry={secureTextEntry} // Passando a propriedade secureTextEntry
           placeholderTextColor="#888"
         />
       </View>

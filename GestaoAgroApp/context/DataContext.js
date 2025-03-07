@@ -7,6 +7,7 @@ export const DataProvider = ({ children }) => {
   const [animals, setAnimals] = useState([]);
   const [healthRecords, setHealthRecords] = useState([]);
   const [productionRecords, setProductionRecords] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -15,10 +16,12 @@ export const DataProvider = ({ children }) => {
       const savedAnimals = await AsyncStorage.getItem('animals');
       const savedHealth = await AsyncStorage.getItem('healthRecords');
       const savedProduction = await AsyncStorage.getItem('productionRecords');
+      const savedUsers = await AsyncStorage.getItem('users');
 
       if (savedAnimals) setAnimals(JSON.parse(savedAnimals));
       if (savedHealth) setHealthRecords(JSON.parse(savedHealth));
       if (savedProduction) setProductionRecords(JSON.parse(savedProduction));
+      if (savedUsers) setUsers(JSON.parse(savedUsers));
       setLoading(false);
     };
 
@@ -47,11 +50,18 @@ export const DataProvider = ({ children }) => {
     await saveData('productionRecords', newRecords);
   };
 
+  const addUser = async (user) => {
+    const newUsers = [...users, user];
+    setUsers(newUsers);
+    await saveData('users', newUsers);
+  };
+
   const clearData = async () => {
     await AsyncStorage.clear();
     setAnimals([]);
     setHealthRecords([]);
     setProductionRecords([]);
+    setUsers([]);
   };
 
   return (
@@ -60,10 +70,12 @@ export const DataProvider = ({ children }) => {
         animals,
         healthRecords,
         productionRecords,
+        users,
         loading,
         addAnimal,
         addHealthRecord,
         addProductionRecord,
+        addUser,
         clearData,
       }}
     >

@@ -9,46 +9,23 @@ import { styles as globalStyles, colors } from '../utils/theme';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const validationSchema = Yup.object().shape({
-  vacina: Yup.string().required('Vacina é obrigatória'),
-  dataVacina: Yup.string()
-    .required('Data da vacina é obrigatória')
+  veterinario: Yup.string().required('Veterinário é obrigatório'),
+  status: Yup.string().required('Status é obrigatório'),
+  apetite: Yup.string().required('Apetite é obrigatório'),
+  temperatura: Yup.number()
+    .required('Temperatura é obrigatória')
+    .positive('Temperatura deve ser um número positivo'),
+  dataVerificacao: Yup.string()
+    .required('Data de verificação é obrigatória')
     .matches(
       /^\d{2}\/\d{2}\/\d{4}$/,
       'Data deve estar no formato DD/MM/AAAA'
     ),
-  observacoes: Yup.string().optional(),
 });
 
 const HealthScreen = () => {
   const { healthRecords, addHealthRecord } = useContext(DataContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('vacina'); // Estado para o tipo de filtro (vacina, dataVacina, observacoes)
-  const [filteredRecords, setFilteredRecords] = useState([]); // Estado para os registros filtrados
-  const [isFilterApplied, setIsFilterApplied] = useState(false); // Estado para verificar se o filtro foi aplicado
-
-  // Função para aplicar o filtro
-  const applyFilter = () => {
-    if (searchTerm === '') {
-      setFilteredRecords([]); // Se o termo estiver vazio, não mostra registros
-      setIsFilterApplied(false);
-    } else {
-      const filtered = healthRecords.filter((record) => {
-        switch (filterType) {
-          case 'vacina':
-            return record.vacina.toLowerCase().includes(searchTerm.toLowerCase());
-          case 'dataVacina':
-            return record.dataVacina.toLowerCase().includes(searchTerm.toLowerCase());
-          case 'observacoes':
-            return record.observacoes?.toLowerCase().includes(searchTerm.toLowerCase());
-          default:
-            return false;
-        }
-      });
-      setFilteredRecords(filtered);
-      setIsFilterApplied(true);
-    }
-  };
 
   const handleSubmit = async (values, { resetForm }) => {
     setIsSubmitting(true);
@@ -69,39 +46,55 @@ const HealthScreen = () => {
       style={{ flex: 1 }}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Formulário de Cadastro */}
         <View style={styles.card}>
           <Text style={styles.title}>Cadastrar Novo Registro de Saúde</Text>
           <Formik
-            initialValues={{ vacina: '', dataVacina: '', observacoes: '' }}
+            initialValues={{ veterinario: '', status: '', apetite: '', temperatura: '', dataVerificacao: '' }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
             {({ handleChange, handleBlur, handleSubmit, values, errors, touched, isValid }) => (
               <View>
                 <Input
-                  placeholder="Vacina"
-                  onChangeText={handleChange('vacina')}
-                  onBlur={handleBlur('vacina')}
-                  value={values.vacina}
-                  error={touched.vacina && errors.vacina}
+                  placeholder="Veterinário"
+                  onChangeText={handleChange('veterinario')}
+                  onBlur={handleBlur('veterinario')}
+                  value={values.veterinario}
+                  error={touched.veterinario && errors.veterinario}
                   icon="medical-services"
                 />
                 <Input
-                  placeholder="Data da Vacina (DD/MM/AAAA)"
-                  onChangeText={handleChange('dataVacina')}
-                  onBlur={handleBlur('dataVacina')}
-                  value={values.dataVacina}
-                  error={touched.dataVacina && errors.dataVacina}
-                  icon="event"
+                  placeholder="Status"
+                  onChangeText={handleChange('status')}
+                  onBlur={handleBlur('status')}
+                  value={values.status}
+                  error={touched.status && errors.status}
+                  icon="assignment"
                 />
                 <Input
-                  placeholder="Observações (opcional)"
-                  onChangeText={handleChange('observacoes')}
-                  onBlur={handleBlur('observacoes')}
-                  value={values.observacoes}
-                  error={touched.observacoes && errors.observacoes}
-                  icon="notes"
+                  placeholder="Apetite"
+                  onChangeText={handleChange('apetite')}
+                  onBlur={handleBlur('apetite')}
+                  value={values.apetite}
+                  error={touched.apetite && errors.apetite}
+                  icon="restaurant"
+                />
+                <Input
+                  placeholder="Temperatura"
+                  onChangeText={handleChange('temperatura')}
+                  onBlur={handleBlur('temperatura')}
+                  value={values.temperatura}
+                  keyboardType="numeric"
+                  error={touched.temperatura && errors.temperatura}
+                  icon="thermostat"
+                />
+                <Input
+                  placeholder="Data de Verificação (DD/MM/AAAA)"
+                  onChangeText={handleChange('dataVerificacao')}
+                  onBlur={handleBlur('dataVerificacao')}
+                  value={values.dataVerificacao}
+                  error={touched.dataVerificacao && errors.dataVerificacao}
+                  icon="event"
                 />
                 <Button
                   title={isSubmitting ? 'Salvando...' : 'Salvar Registro'}
@@ -113,78 +106,6 @@ const HealthScreen = () => {
             )}
           </Formik>
         </View>
-
-        {/* Filtro de Registros de Saúde */}
-        <View style={styles.card}>
-          <Text style={styles.title}>Filtrar Registros de Saúde</Text>
-          <View style={styles.filterContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder={`Digite o ${filterType === 'vacina' ? 'nome da vacina' : filterType === 'dataVacina' ? 'data da vacina' : 'observação'}`}
-              value={searchTerm}
-              onChangeText={(text) => setSearchTerm(text)}
-            />
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={applyFilter}
-            >
-              <Icon name="search" size={24} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.filterOptions}>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                filterType === 'vacina' && styles.filterOptionActive,
-              ]}
-              onPress={() => setFilterType('vacina')}
-            >
-              <Text style={styles.filterOptionText}>Vacina</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                filterType === 'dataVacina' && styles.filterOptionActive,
-              ]}
-              onPress={() => setFilterType('dataVacina')}
-            >
-              <Text style={styles.filterOptionText}>Data</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.filterOption,
-                filterType === 'observacoes' && styles.filterOptionActive,
-              ]}
-              onPress={() => setFilterType('observacoes')}
-            >
-              <Text style={styles.filterOptionText}>Observações</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Histórico de Saúde Filtrado */}
-        {isFilterApplied && (
-          <View style={styles.card}>
-            <Text style={styles.title}>Histórico de Saúde Animal</Text>
-            <Text style={styles.description}>
-              Aqui você pode acompanhar o histórico de saúde dos seus animais, incluindo vacinas, tratamentos e observações.
-            </Text>
-
-            {filteredRecords.length === 0 ? (
-              <Text style={styles.emptyMessage}>Nenhum registro de saúde encontrado.</Text>
-            ) : (
-              filteredRecords.map((record, index) => (
-                <View key={index} style={styles.healthItem}>
-                  <Text style={styles.itemTitle}>{record.vacina}</Text>
-                  <Text style={styles.itemDate}>Data: {record.dataVacina}</Text>
-                  {record.observacoes && (
-                    <Text style={styles.itemNotes}>Observações: {record.observacoes}</Text>
-                  )}
-                </View>
-              ))
-            )}
-          </View>
-        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -212,78 +133,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: colors.primary,
-  },
-  description: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#333',
-  },
-  healthItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 10,
-  },
-  itemTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  itemDate: {
-    fontSize: 14,
-    color: '#666',
-  },
-  itemNotes: {
-    fontSize: 14,
-    color: '#666',
-  },
-  emptyMessage: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 10,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 50,
-    borderColor: colors.secondary,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    backgroundColor: 'white',
-    marginRight: 10,
-  },
-  filterButton: {
-    backgroundColor: colors.primary,
-    padding: 10,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  filterOption: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: colors.lightGray,
-    marginHorizontal: 5,
-    alignItems: 'center',
-  },
-  filterOptionActive: {
-    backgroundColor: colors.primary,
-  },
-  filterOptionText: {
-    fontSize: 16,
-    color: colors.darkGray,
   },
 });
 
