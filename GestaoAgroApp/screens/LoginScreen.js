@@ -89,7 +89,7 @@ const LoginScreen = () => {
               <Button
                 title="Registrar"
                 onPress={() => navigation.navigate('Register')}
-                style={{ marginTop: 10, backgroundColor: colors.secondary }}
+                style={{ marginTop: 10 }}
               />
             </View>
           )}

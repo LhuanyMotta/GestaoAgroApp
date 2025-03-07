@@ -62,20 +62,24 @@ const ReportsScreen = () => {
 
   const renderChart = () => {
     const chartConfig = {
-      backgroundColor: colors.primary,
-      backgroundGradientFrom: colors.primary,
-      backgroundGradientTo: colors.secondary,
+      backgroundColor: '#FFFFFF', // Fundo branco
+      backgroundGradientFrom: '#FFFFFF', // Gradiente inicial branco
+      backgroundGradientTo: '#FFFFFF', // Gradiente final branco
       decimalPlaces: 0,
-      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+      color: (opacity = 1) => `rgba(0, 128, 0, ${opacity})`, // Verde para as barras e textos
+      labelColor: (opacity = 1) => `rgba(0, 128, 0, ${opacity})`, // Verde para os rótulos
       style: {
         borderRadius: 16,
+        
       },
+      
       propsForDots: {
-        r: '6',
-        strokeWidth: '2',
-        stroke: colors.secondary,
+        r: '8',
+        strokeWidth: '4',
+        stroke: 'green', 
       },
+    
+   
     };
 
     if (selectedChart === 'bar') {
@@ -88,14 +92,17 @@ const ReportsScreen = () => {
           chartConfig={chartConfig}
           style={{
             marginVertical: 20,
-            borderRadius: 10,
+            borderRadius: 12,
             alignSelf: 'center',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.8,
+            shadowOpacity: 0.9,
             shadowRadius: 2,
             elevation: 5,
+           
+           
           }}
+    
           fromZero
           onDataPointClick={handleDataPointClick}
         />
@@ -115,7 +122,7 @@ const ReportsScreen = () => {
             alignSelf: 'center',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.8,
+            shadowOpacity: 0.9,
             shadowRadius: 2,
             elevation: 5,
           }}
@@ -142,7 +149,7 @@ const ReportsScreen = () => {
       marginBottom: 16,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
+      shadowOpacity: 0.5,
       shadowRadius: 4,
       elevation: 5,
     },
@@ -305,6 +312,7 @@ const styles = StyleSheet.create({
   },
   filterOptionActive: {
     backgroundColor: colors.primary,
+  
   },
   filterOptionText: {
     fontSize: 16,
@@ -322,6 +330,7 @@ const styles = StyleSheet.create({
   },
   activeButton: {
     backgroundColor: colors.primary,
+  
   },
   chartToggleText: {
     color: colors.text,
